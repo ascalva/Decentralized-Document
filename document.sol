@@ -18,14 +18,10 @@ contract ActualContract
         string name;
         bool owner;
         bool signed;
+        uint signDate;
     }
 
-    /* Contract attributes:
-        + Contents
-        +
-
-    */
-
+    // Info for every seciton of contract
     struct Section
     {
         uint SectionNumber;
@@ -37,6 +33,14 @@ contract ActualContract
     mapping(address => Owner) private owners;
     uint private numOwners = 0;
     uint private signatures = 0;
+
+    // Store contract sections
+    mapping(uint => Section) private sections;
+    uint private numSections = 0;
+
+    // editable is true if no one has signed; becomes false when at least
+    // one person has signed.
+    bool private editable = true;
 
     // Announce new owner
     event NewOwner
@@ -54,10 +58,12 @@ contract ActualContract
         string description
     );
 
+    // Announce new signature
     event NewSignature
     (
         string NameOfSigner,
-        address AddOfSigner
+        address AddOfSigner,
+        uint date
     );
 
     // Constructor
@@ -66,6 +72,17 @@ contract ActualContract
         owners[msg.sender].name = _name;
         owners[msg.sender].owner = true;
         numOwners++;
+    }
+
+    function AddSection(string _title, string _description) public
+    {
+        if( !owners[msg.sender].owner ) return;
+        if( !editable )                 return;
+
+        sections[numSections].SectionNumber = numSections;
+        sections[numSections].Title = _title;
+        sections[numSections].MoreInfo = _description;
+        numSections++;
     }
 
     // Only an owner of the document can add another owner
@@ -80,13 +97,17 @@ contract ActualContract
         numOwners++;
     }
 
+    // Allow an owner to sign document
     function SignDocument() public
     {
         if( !owners[msg.sender].owner && owners[msg.sender].signed ) return;
 
+        if( signatures == 1) editable = false;
+
         owners[msg.sender].signed = true;
+        owners[msg.sender].signDate = now;
         signatures++;
-        emit NewSignature(owners[msg.sender].name, msg.sender);
+        emit NewSignature(owners[msg.sender].name, msg.sender, owners[msg.sender].signDate);
     }
 
 }
