@@ -35,8 +35,7 @@ contract Document
     uint private signatures = 0;
 
     // Store contract sections
-    mapping(uint => Section) private sections;
-    uint private numSections = 0;
+    Section[] private sections;
 
     // editable is true if no one has signed; becomes false when at least
     // one person has signed.
@@ -79,10 +78,12 @@ contract Document
         if( !owners[msg.sender].owner ) return;
         if( !editable )                 return;
 
-        sections[numSections].SectionNumber = numSections;
-        sections[numSections].Title = _title;
-        sections[numSections].MoreInfo = _description;
-        numSections++;
+        sections.push(Section(
+        {
+            SectionNumber: sections.length + 1,
+            Title: _title,
+            MoreInfo: _description
+        }));
     }
 
     // Only an owner of the document can add another owner
