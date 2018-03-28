@@ -3,13 +3,13 @@ pragma solidity ^0.4.21;
 /**
  * author: Alberto Serrano
  *
- * purpose: Create a template for an official, business contract.
+ * purpose: Create a template for an official, business document.
  *          Provide way for multiple parties to edit state of contract,
  *          set payouts if certain conditions are met (all parties must sign).
  *          Every edit to contract will be made public (by nature of tech).
  **/
 
-contract ActualContract
+contract Document
 {
     // Info for every owner of the contract.
     // Can edit contract if owner == true
@@ -21,13 +21,13 @@ contract ActualContract
         uint signDate;
     }
 
-    // Info for every seciton of contract
+    // Info for every section of contract
     struct Section
     {
         uint SectionNumber;
         string Title;
         string MoreInfo;
-        // Add more important info about seciton
+        // Add more important info about section
     }
 
     mapping(address => Owner) private owners;
@@ -67,7 +67,7 @@ contract ActualContract
     );
 
     // Constructor
-    function ActualContract(string _name) public
+    function Document(string _name) public
     {
         owners[msg.sender].name = _name;
         owners[msg.sender].owner = true;
@@ -109,5 +109,4 @@ contract ActualContract
         signatures++;
         emit NewSignature(owners[msg.sender].name, msg.sender, owners[msg.sender].signDate);
     }
-
 }
