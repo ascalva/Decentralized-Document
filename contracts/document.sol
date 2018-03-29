@@ -11,6 +11,8 @@ pragma solidity ^0.4.21;
 
 contract Document
 {
+    string public DocumentName;
+
     // Info for every owner of the contract.
     // Can edit contract if owner == true
     struct Owner
@@ -39,7 +41,7 @@ contract Document
 
     // editable is true if no one has signed; becomes false when at least
     // one person has signed.
-    bool private editable = true;
+    bool private edit = true;
 
     // Announce new owner
     event NewOwner
@@ -65,19 +67,33 @@ contract Document
         uint date
     );
 
-    // Constructor
-    function Document(string _name) public
+    // Checks that current sender is an owner of the document
+    modifier ownership()
     {
+        require(owners[msg.sender].owner);
+        _;
+    }
+
+    // Checks if document is editable, or that no owner has signed
+    modifier editable()
+    {
+        require( edit );
+        _;
+    }
+
+
+    // Constructor
+    function Document(string _DocumentName, string _name) public
+    {
+        DocumentName = _DocumentName;
+
         owners[msg.sender].name = _name;
         owners[msg.sender].owner = true;
         numOwners++;
     }
 
-    function AddSection(string _title, string _description) public
+    function AddSection(string _title, string _description) public ownership() editable()
     {
-        if( !owners[msg.sender].owner ) return;
-        if( !editable )                 return;
-
         sections.push(Section(
         {
             SectionNumber: sections.length + 1,
@@ -88,10 +104,8 @@ contract Document
 
     // Only an owner of the document can add another owner
     // Announce new owner
-    function AddOwner(address to, string _name) public
+    function AddOwner(address to, string _name) public ownership() editable()
     {
-        if( !owners[msg.sender].owner ) return;
-
         owners[to].owner = true;
         owners[to].name = _name;
         emit NewOwner(_name, to);
@@ -99,11 +113,11 @@ contract Document
     }
 
     // Allow an owner to sign document
-    function SignDocument() public
+    function SignDocument() public ownership() editable()
     {
-        if( !owners[msg.sender].owner && owners[msg.sender].signed ) return;
+        if( owners[msg.sender].signed ) return;
 
-        if( signatures == 1) editable = false;
+        if( signatures == 1) edit = false;
 
         owners[msg.sender].signed = true;
         owners[msg.sender].signDate = now;
